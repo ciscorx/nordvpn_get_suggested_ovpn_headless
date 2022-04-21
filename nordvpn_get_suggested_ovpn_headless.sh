@@ -30,17 +30,11 @@ VPN_PASSWD_FILE=nordvpn.auth
 CACHEDIR=/tmp/temp-disk-cache-dir
 XVFB_DIR=/tmp/xvfb_dir
 
-addr1=http://duckduckgo.com
 addr2=https://nordvpn.com/servers/tools/
-addr3=http://google.com
-twitter_password=password
-TMP_RESULTS_FILE=/tmp/savetheseresults.txt
 output_screenshots=1
 
 SCRIPT=`realpath $0`
-# SCRIPTPATH=`dirname $SCRIPT`
 sCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-OUTPUT_FILE="$SCRIPTPATH"/unfollowed.txt
 WEBROWSER=firefox
 
 if [ -z $1 ]; then
@@ -121,8 +115,6 @@ DISPLAY=$DSP $WEBROWSER $addr2 &
 sleep 10
 
 ##  sleep_until_screen_stops_changing # 
-
- 
     MAX_SLEEP_ITERATIONS=20
     sleep_iteration=0
     rm -f /tmp/screen_stops_changing.ppm
@@ -130,9 +122,7 @@ sleep 10
     lastmd5=`md5sum /tmp/screen_stops_changing.ppm | awk '{print $1}'`
 #    echo screen changing $md5
     tmpmd5="tmpmd5"
-    
     sleep 2
-    
     until [ $tmpmd5 = $lastmd5 ] || [ $sleep_iteration = $MAX_SLEEP_ITERATIONS ]; do 
 	rm -f /tmp/screen_stops_changing.ppm
 	DISPLAY=$DSP scrot /tmp/screen_stops_changing.ppm
@@ -156,12 +146,10 @@ ovpn_name=`eval $cmd`
 ovpn_name=`echo $ovpn_name | cut -d'.' -f1`
 
 if [ $1 = 'tcp' ]; then
-    
     $(wget_tcp $ovpn_name)
 fi
 
 if [ $1 = 'udp' ]; then
-    
     $(wget_udp $ovpn_name)
 fi
 
@@ -173,11 +161,13 @@ if [ -z $ovpn_file ]; then
     exit 1
 fi
 
+# modify ovpn file
 ovpn_file_basename=`basename $ovpn_file`
 cat ${VPN_DIR}/append_this_to_end_of_ovpn_file.txt >> $ovpn_file
 vpn_dir_escaped_forward_slashes=$(echo "$VPN_DIR" | sed 's/\//\\\//g')
 perl -pi -e "s/auth-user-pass/auth-user-pass ${vpn_dir_escaped_forward_slashes}\/${VPN_PASSWD_FILE}/g;" $ovpn_file
 
+# create run_startvpn file
 cp $ovpn_file ${VPN_DIR}/
 cp ${VPN_DIR}/template_startvpn ${VPN_DIR}/run_startvpn
 perl -pi -e "s/TEMPLATE_STARTVPN/$ovpn_file_basename/g;" ${VPN_DIR}/run_startvpn
