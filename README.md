@@ -7,8 +7,8 @@ gets the suggested tcp or udp ovpn file from nordvpn.com
  gets the recommended nord vpn server config file for udp, or tcp,
  depending on the parameter entered, and modifies it.
 
- usage:
-    get_nord tcp
+ usage: </br>
+    get_nord tcp</br>
     get_nord udp
 
  Requirements: linux, xclip, xvfb, xautomation, scrot 0.8-18+,
