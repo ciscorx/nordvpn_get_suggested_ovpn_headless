@@ -1,7 +1,7 @@
 #!/bin/sh
 
 ###############################
-##  get_nord.sh  
+##  nordvpn_get_suggested_ovpn_headless.sh  
 ###############################
 #  headlessly visits the webpage https://nordvpn.com/servers/tools/
 #  using xvfb and firefox and then gets the recommended nord vpn
@@ -9,8 +9,8 @@
 #  entered, and modifies it.
 
 #  usage:
-#     get_nord tcp
-#     get_nord udp
+#    nordvpn_get_suggested_ovpn_headless.sh tcp
+#    nordvpn_get_suggested_ovpn_headless.sh udp
 
 #  Requirements: linux, xclip, xvfb, xautomation, scrot 0.8-18+,
 #  openvpn-systemd-resolved, python 3, firefox
