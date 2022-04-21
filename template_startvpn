@@ -1,0 +1,13 @@
+#!/bin/sh
+query=`sudo screen -ls|grep defaultvpn|wc|awk '{print $1}'`
+if [ $query = "0" ]; then
+
+sudo sysctl -w net.ipv6.conf.all.disable_ipv6=1
+sudo sysctl -w net.ipv6.conf.default.disable_ipv6=1
+sudo sysctl -w net.ipv6.conf.lo.disable_ipv6=1
+cd /opt/scripts/vpn/
+sudo screen -S defaultvpn -dm /usr/sbin/openvpn --config /opt/scripts/vpn/TEMPLATE_STARTVPN
+else 
+	echo "defaultvpn screen is already active"
+fi
+
