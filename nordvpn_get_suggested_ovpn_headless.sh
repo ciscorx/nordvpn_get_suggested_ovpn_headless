@@ -13,7 +13,7 @@
 #     get_nord udp
 
 #  Requirements: linux, xclip, xvfb, xautomation, scrot 0.8-18+,
-#  openvpn-systemd-resolved, firefox
+#  openvpn-systemd-resolved, python 3, firefox
 
 #  Note: This script is not authorized by NordVPN, but works.
 #   Although, it will kill any running firefox sessions.  The files
@@ -30,8 +30,7 @@ VPN_PASSWD_FILE=nordvpn.auth
 CACHEDIR=/tmp/temp-disk-cache-dir
 XVFB_DIR=/tmp/xvfb_dir
 
-addr2=https://nordvpn.com/servers/tools/
-output_screenshots=1
+addr=https://nordvpn.com/servers/tools/
 
 SCRIPT=`realpath $0`
 sCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
@@ -42,19 +41,20 @@ if [ -z $1 ]; then
     exit 1
 fi
 
-
 if !([ $1 = 'tcp' ] || [ $1 = 'udp' ]); then
     echo Please enter udp or tcp as first parameter, to specify which ovpn file to get from nordvpn.
     exit 1
 fi
 
 
+## This function takes as a parameter the first part of the name of the udp file to get from nordvpn, and gets it.
 wget_udp() {
 cd /tmp
 wget https://downloads.nordcdn.com/configs/files/ovpn_legacy/servers/$1.nordvpn.com.udp1194.ovpn
 }
 
 
+## This function takes as a parameter the first part of the name of the tcp file to get from nordvpn, and gets it.
 wget_tcp() {
 cd /tmp
 wget https://downloads.nordcdn.com/configs/files/ovpn_legacy/servers/$1.nordvpn.com.tcp443.ovpn
@@ -96,9 +96,8 @@ mkdir -p "$CACHEDIR"
 rm -rf "$XVFB_DIR"
 mkdir -p  "$XVFB_DIR"
 rm /tmp/*.ovpn 
-step=0
 
-# have to start out by killing any opened firefox sessions or the script will try to use an already opened session
+# We have to start out by killing any opened firefox sessions or the script will try to use an already opened session.
 pkill $WEBROWSER
 kill_xvfb
 sleep 1
@@ -108,13 +107,13 @@ Xvfb $DSP -fbdir "$XVFB_DIR" &
 sleep 1 
 
 
-DISPLAY=$DSP $WEBROWSER $addr2 &
-#DISPLAY=$DSP $WEBROWSER --user-data-dir="$CACHEDIR" --disk-cache-dir="$CACHEDIR" --profile-directory="Profile 3" $addr2 &
+DISPLAY=$DSP $WEBROWSER $addr &
+#DISPLAY=$DSP $WEBROWSER --user-data-dir="$CACHEDIR" --disk-cache-dir="$CACHEDIR" --profile-directory="Profile 3" $addr &
   
         
 sleep 10
 
-##  sleep_until_screen_stops_changing # 
+##  Sleep until screen stops changing  
     MAX_SLEEP_ITERATIONS=20
     sleep_iteration=0
     rm -f /tmp/screen_stops_changing.ppm
@@ -135,7 +134,8 @@ sleep 10
     done
     echo .
     rm -f /tmp/screen_stops_changing.ppm
-   
+
+#  The following block of code uses xautomation to control-c copy all the text from the browser, and grep it for the first part of the ovpn file name.
 DISPLAY=$DSP xte 'keydown Control_L' 'str a' 'usleep 1000000' 'str c' 'usleep 300000' 'keyup Control_L' "usleep $(rnd 2000000 5000000)" 
 line=`DISPLAY=$DSP xclip -o | grep -n 'Flag' | cut -d':' -f1`
 line=$(( $line + 1 ))
@@ -155,19 +155,20 @@ fi
 
 sleep 1
 
+#  Assume that there is only 1 .ovpn file in the /tmp directory, and its the one that we just downloaded.
 ovpn_file=`ls /tmp/*.ovpn`
 if [ -z $ovpn_file ]; then
     echo no ovpn file download.  Aborting
     exit 1
 fi
 
-# modify ovpn file
+#  Modify ovpn file
 ovpn_file_basename=`basename $ovpn_file`
 cat ${VPN_DIR}/append_this_to_end_of_ovpn_file.txt >> $ovpn_file
 vpn_dir_escaped_forward_slashes=$(echo "$VPN_DIR" | sed 's/\//\\\//g')
 perl -pi -e "s/auth-user-pass/auth-user-pass ${vpn_dir_escaped_forward_slashes}\/${VPN_PASSWD_FILE}/g;" $ovpn_file
 
-# create run_startvpn file
+#  Create run_startvpn file
 cp $ovpn_file ${VPN_DIR}/
 cp ${VPN_DIR}/template_startvpn ${VPN_DIR}/run_startvpn
 perl -pi -e "s/TEMPLATE_STARTVPN/$ovpn_file_basename/g;" ${VPN_DIR}/run_startvpn

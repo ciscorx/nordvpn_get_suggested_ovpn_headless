@@ -12,7 +12,7 @@ gets the suggested tcp or udp ovpn file from nordvpn.com
     get_nord udp
 
  Requirements: linux, xclip, xvfb, xautomation, scrot 0.8-18+,
- openvpn-systemd-resolved, firefox
+ openvpn-systemd-resolved, python 3, firefox
 
  Note: This script is not authorized by NordVPN, but works.  Although,
   it will kill any running firefox sessions.  The files
